@@ -6,6 +6,7 @@ use App\Models\Application;
 use App\Models\ApplicationPreview;
 use App\Notifications\CustomEmailNotification;
 use App\Notifications\Dto\DiscordMessage;
+use App\Notifications\Dto\GotifyMessage;
 use App\Notifications\Dto\PushoverMessage;
 use App\Notifications\Dto\SlackMessage;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -203,6 +204,33 @@ class DeploymentSuccess extends CustomEmailNotification
             title: $title,
             description: $description,
             color: SlackMessage::successColor()
+        );
+    }
+
+    public function toGotify(): GotifyMessage
+    {
+        if ($this->preview) {
+            $title = "Pull request #{$this->preview->pull_request_id} successfully deployed";
+            $message = "New version successfully deployed for {$this->application_name}";
+            if ($this->preview->fqdn) {
+                $message .= "\nPreview URL: {$this->preview->fqdn}";
+            }
+        } else {
+            $title = 'New version successfully deployed';
+            $message = "New version successfully deployed for {$this->application_name}";
+            if ($this->fqdn) {
+                $message .= "\nApplication URL: {$this->fqdn}";
+            }
+        }
+
+        $message .= "\n\nProject: ".data_get($this->application, 'environment.project.name');
+        $message .= "\nEnvironment: {$this->environment_name}";
+        $message .= "\nDeployment Logs: {$this->deployment_url}";
+
+        return new GotifyMessage(
+            title: $title,
+            message: $message,
+            priority: GotifyMessage::normalPriority()
         );
     }
 }

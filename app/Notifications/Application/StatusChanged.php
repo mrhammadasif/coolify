@@ -5,6 +5,7 @@ namespace App\Notifications\Application;
 use App\Models\Application;
 use App\Notifications\CustomEmailNotification;
 use App\Notifications\Dto\DiscordMessage;
+use App\Notifications\Dto\GotifyMessage;
 use App\Notifications\Dto\PushoverMessage;
 use App\Notifications\Dto\SlackMessage;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -111,6 +112,22 @@ class StatusChanged extends CustomEmailNotification
             title: $title,
             description: $description,
             color: SlackMessage::errorColor()
+        );
+    }
+
+    public function toGotify(): GotifyMessage
+    {
+        $title = 'Application stopped';
+        $message = "{$this->resource_name} has been stopped";
+
+        $message .= "\n\nProject: ".data_get($this->resource, 'environment.project.name');
+        $message .= "\nEnvironment: {$this->environment_name}";
+        $message .= "\nApplication URL: {$this->resource_url}";
+
+        return new GotifyMessage(
+            title: $title,
+            message: $message,
+            priority: GotifyMessage::highPriority()
         );
     }
 }
