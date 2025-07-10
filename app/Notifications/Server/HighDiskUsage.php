@@ -5,6 +5,7 @@ namespace App\Notifications\Server;
 use App\Models\Server;
 use App\Notifications\CustomEmailNotification;
 use App\Notifications\Dto\DiscordMessage;
+use App\Notifications\Dto\GotifyMessage;
 use App\Notifications\Dto\PushoverMessage;
 use App\Notifications\Dto\SlackMessage;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -86,6 +87,24 @@ class HighDiskUsage extends CustomEmailNotification
             title: 'High disk usage detected',
             description: $description,
             color: SlackMessage::errorColor()
+        );
+    }
+
+    public function toGotify(): GotifyMessage
+    {
+        $message = "Server '{$this->server->name}' high disk usage detected!\n";
+        $message .= "Disk usage: {$this->disk_usage}%\n";
+        $message .= "Threshold: {$this->server_disk_usage_notification_threshold}%\n\n";
+        $message .= "Please cleanup your disk to prevent data-loss.\n";
+        $message .= "Tips for cleanup: https://coolify.io/docs/knowledge-base/server/automated-cleanup\n";
+        $message .= "Change settings:\n";
+        $message .= '- Threshold: '.base_url().'/server/'.$this->server->uuid."#advanced\n";
+        $message .= '- Notifications: '.base_url().'/notifications/gotify';
+
+        return new GotifyMessage(
+            title: 'High disk usage detected',
+            message: $message,
+            priority: GotifyMessage::highPriority()
         );
     }
 }

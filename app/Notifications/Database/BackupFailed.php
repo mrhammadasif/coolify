@@ -5,6 +5,7 @@ namespace App\Notifications\Database;
 use App\Models\ScheduledDatabaseBackup;
 use App\Notifications\CustomEmailNotification;
 use App\Notifications\Dto\DiscordMessage;
+use App\Notifications\Dto\GotifyMessage;
 use App\Notifications\Dto\PushoverMessage;
 use App\Notifications\Dto\SlackMessage;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -86,6 +87,21 @@ class BackupFailed extends CustomEmailNotification
             title: $title,
             description: $description,
             color: SlackMessage::errorColor()
+        );
+    }
+
+    public function toGotify(): GotifyMessage
+    {
+        $title = 'Database backup failed';
+        $message = "Database backup for {$this->name} (db:{$this->database_name}) has FAILED.";
+
+        $message .= "\n\nFrequency: {$this->frequency}";
+        $message .= "\n\nError Output: {$this->output}";
+
+        return new GotifyMessage(
+            title: $title,
+            message: $message,
+            priority: GotifyMessage::highPriority()
         );
     }
 }
